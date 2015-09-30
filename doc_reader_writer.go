@@ -46,11 +46,19 @@ func (dw *DocWriter) writeDocs() {
 			docToWrite.Value,
 			0,
 		)
+		dw.DocsToRead <- docToWrite
 	}
 }
 
 func (dr *DocReader) readDocs() {
-	// TODO
+	for docToRead := range dr.DocsToRead {
+		log.Printf("Reading doc: %v", docToRead.Key)
+		dr.StorageEngine.Get(
+			docToRead.Key,
+			&docToRead.Value,
+		)
+	}
+
 }
 
 func createDocWriters(docsToWrite, docsToRead chan Document, storageEngine StorageEngine, numDocWriters int) {

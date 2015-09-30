@@ -8,6 +8,7 @@ import (
 
 type StorageEngine interface {
 	Insert(key string, value interface{}, expiry uint32) error
+	Get(key string, returnVal interface{}) error
 }
 
 type GoCouchbaseStorageEngine struct {
@@ -61,4 +62,12 @@ func (se *GoCBStorageEngine) Insert(key string, value interface{}, expiry uint32
 func (se *GoCouchbaseStorageEngine) Insert(key string, value interface{}, expiry uint32) error {
 	_, err := se.Bucket.Add(key, 0, value)
 	return err
+}
+
+func (se *GoCBStorageEngine) Get(key string, returnValue interface{}) error {
+	return nil
+}
+
+func (se *GoCouchbaseStorageEngine) Get(key string, returnValue interface{}) error {
+	return se.Bucket.Get(key, returnValue)
 }
