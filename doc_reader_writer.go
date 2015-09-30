@@ -1,7 +1,5 @@
 package main
 
-import "log"
-
 type DocWriter struct {
 	DocsToWrite   chan Document
 	DocsToRead    chan Document
@@ -40,23 +38,30 @@ func (dr *DocReader) Start() {
 
 func (dw *DocWriter) writeDocs() {
 	for docToWrite := range dw.DocsToWrite {
-		log.Printf("Writing doc: %v", docToWrite.Key)
+		// log.Printf("Writing doc: %v", docToWrite.Key)
 		dw.StorageEngine.Insert(
 			docToWrite.Key,
 			docToWrite.Value,
 			0,
 		)
-		dw.DocsToRead <- docToWrite
+		docToRead := Document{
+			Key: docToWrite.Key,
+		}
+		dw.DocsToRead <- docToRead
 	}
 }
 
 func (dr *DocReader) readDocs() {
 	for docToRead := range dr.DocsToRead {
-		log.Printf("Reading doc: %v", docToRead.Key)
+		// log.Printf("Reading doc: %v", docToRead.Key)
 		dr.StorageEngine.Get(
 			docToRead.Key,
 			&docToRead.Value,
 		)
+		docFinished := Document{
+			Key: docToRead.Key,
+		}
+		dr.DocsFinished <- docFinished
 	}
 
 }

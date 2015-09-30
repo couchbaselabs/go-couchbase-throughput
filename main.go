@@ -2,9 +2,9 @@ package main
 
 func main() {
 
-	chanBufferSize := 1000
-	totalNumDocs := 10
-	docSizeBytes := 1024 * 100
+	totalNumDocs := 10000000
+	chanBufferSize := totalNumDocs
+	docSizeBytes := 100
 	numDocWriters := 100
 	numDocReaders := 100
 
@@ -21,7 +21,8 @@ func main() {
 	// create the storage engine (either go-couchbase or go-cb)
 	url := "http://127.0.0.1:8091"
 	bucket := "default"
-	storageEngine := NewGoCouchbaseStorageEngine(url, bucket)
+	// storageEngine := NewGoCouchbaseStorageEngine(url, bucket)
+	storageEngine := NewGoCBStorageEngine(url, bucket)
 
 	// create a bunch of docWriter goroutines and pass the docsToWrite channel
 	// and the storage engine

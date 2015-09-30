@@ -68,10 +68,7 @@ func (d *DocFeeder) waitForDocsFinished(wg *sync.WaitGroup) {
 	for {
 		<-d.DocsFinished
 		numDocsFinished += 1
-		if numDocsFinished >= d.TotalNumDocs {
-			wg.Done()
-			return
-		}
+		wg.Done()
 	}
 
 }
