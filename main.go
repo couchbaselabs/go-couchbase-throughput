@@ -23,6 +23,7 @@ func main() {
 	bucket := "default"
 	// storageEngine := NewGoCouchbaseStorageEngine(url, bucket)
 	storageEngine := NewGoCBStorageEngine(url, bucket)
+	// storageEngine := NewMockStorageEngine(url, bucket)
 
 	// create a bunch of docWriter goroutines and pass the docsToWrite channel
 	// and the storage engine

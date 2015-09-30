@@ -21,6 +21,13 @@ type GoCBStorageEngine struct {
 	Bucket *gocb.Bucket
 }
 
+type MockStorageEngine struct {
+}
+
+func NewMockStorageEngine(couchbaseUrl, bucketName string) *MockStorageEngine {
+	return &MockStorageEngine{}
+}
+
 // couchbaseUrl should have form: http://user:pass@host:8091
 func NewGoCouchbaseStorageEngine(couchbaseUrl, bucketName string) *GoCouchbaseStorageEngine {
 
@@ -90,4 +97,12 @@ func (se *GoCBStorageEngine) Get(key string, returnValue interface{}) error {
 
 func (se *GoCouchbaseStorageEngine) Get(key string, returnValue interface{}) error {
 	return se.Bucket.Get(key, returnValue)
+}
+
+func (se *MockStorageEngine) Insert(key string, value interface{}, expiry uint32) error {
+	return nil
+}
+
+func (se *MockStorageEngine) Get(key string, returnValue interface{}) error {
+	return nil
 }
