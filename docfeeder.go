@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 )
 
@@ -48,9 +49,17 @@ func (d *DocFeeder) writeDocs(wg *sync.WaitGroup) {
 }
 
 func (d DocFeeder) createDocContent() interface{} {
-	// bytes := make([]byte, d.DocSizeBytes)
-	// for i :=
-	return "foo"
+	return randSeq(d.DocSizeBytes)
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randSeq(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }
 
 func (d *DocFeeder) waitForDocsFinished(wg *sync.WaitGroup) {
