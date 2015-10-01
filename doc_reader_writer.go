@@ -1,5 +1,10 @@
 package main
 
+import (
+	"log"
+	"time"
+)
+
 type DocWriter struct {
 	DocsToWrite   chan Document
 	DocsToRead    chan Document
@@ -62,6 +67,19 @@ func (dr *DocReader) readDocs() {
 			Key: docToRead.Key,
 		}
 		dr.DocsFinished <- docFinished
+	}
+
+}
+
+func blockUntilAllDocsWritten(totalNumDocs int, docsToRead chan Document) {
+	log.Printf("blockUntilAllDocsWritten")
+	for {
+		<-time.After(1 * time.Second)
+		if len(docsToRead) >= totalNumDocs {
+			log.Printf("/blockUntilAllDocsWritten")
+			return
+		}
+		log.Printf("len(docsToRead) < totalNumDocs, %v < %v", len(docsToRead), totalNumDocs)
 	}
 
 }
