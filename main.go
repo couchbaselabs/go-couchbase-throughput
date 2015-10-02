@@ -1,5 +1,9 @@
 package main
 
+import "time"
+
+var SlowServerCallWarningThreshold = time.Duration(200) * time.Millisecond
+
 func main() {
 
 	totalNumDocs := 1000000

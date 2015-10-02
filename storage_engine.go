@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/url"
+	"runtime"
+	"time"
 
 	"github.com/couchbase/go-couchbase"
 	"github.com/couchbase/gocb"
@@ -33,6 +35,7 @@ func NewGoCouchbaseStorageEngine(couchbaseUrl, bucketName string) *GoCouchbaseSt
 
 	// couchbase.PoolSize = 1
 	// couchbase.PoolOverflow = 1
+	// couchbase.SlowServerCallWarningThreshold = time.Duration(200) * time.Millisecond
 
 	u, err := url.Parse(couchbaseUrl)
 	if err != nil {
@@ -81,21 +84,33 @@ func NewGoCBStorageEngine(couchbaseUrl, bucketName string) *GoCBStorageEngine {
 }
 
 func (se *GoCBStorageEngine) Insert(key string, value interface{}, expiry uint32) error {
+	if SlowServerCallWarningThreshold > 0 {
+		defer slowLog(time.Now(), "call to Insert(%q)", key)
+	}
 	_, err := se.Bucket.Insert(key, value, expiry)
 	return err
 }
 
 func (se *GoCouchbaseStorageEngine) Insert(key string, value interface{}, expiry uint32) error {
+	if SlowServerCallWarningThreshold > 0 {
+		defer slowLog(time.Now(), "call to Insert(%q)", key)
+	}
 	_, err := se.Bucket.Add(key, 0, value)
 	return err
 }
 
 func (se *GoCBStorageEngine) Get(key string, returnValue interface{}) error {
+	if SlowServerCallWarningThreshold > 0 {
+		defer slowLog(time.Now(), "call to Get(%q)", key)
+	}
 	_, err := se.Bucket.Get(key, returnValue)
 	return err
 }
 
 func (se *GoCouchbaseStorageEngine) Get(key string, returnValue interface{}) error {
+	if SlowServerCallWarningThreshold > 0 {
+		defer slowLog(time.Now(), "call to Get(%q)", key)
+	}
 	return se.Bucket.Get(key, returnValue)
 }
 
@@ -105,4 +120,14 @@ func (se *MockStorageEngine) Insert(key string, value interface{}, expiry uint32
 
 func (se *MockStorageEngine) Get(key string, returnValue interface{}) error {
 	return nil
+}
+
+func slowLog(startTime time.Time, format string, args ...interface{}) {
+
+	if elapsed := time.Now().Sub(startTime); elapsed > SlowServerCallWarningThreshold {
+		pc, _, _, _ := runtime.Caller(2)
+		caller := runtime.FuncForPC(pc).Name()
+		log.Printf(format+" in "+caller+" took "+elapsed.String(), args...)
+	}
+
 }
