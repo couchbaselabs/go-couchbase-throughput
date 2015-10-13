@@ -7,13 +7,16 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/nu7hatch/gouuid"
 )
 
 type DocFeeder struct {
-	DocsToWrite  chan Document
-	DocsFinished chan Document
-	TotalNumDocs int
-	DocSizeBytes int
+	DocsToWrite   chan Document
+	DocsFinished  chan Document
+	TotalNumDocs  int
+	DocSizeBytes  int
+	KeyPrefixUUID string
 }
 
 func NewDocFeeder(docsToWrite, docsFinished chan Document, totalNumDocs, docSizeBytes int) *DocFeeder {
@@ -22,6 +25,15 @@ func NewDocFeeder(docsToWrite, docsFinished chan Document, totalNumDocs, docSize
 	docFeeder.DocsFinished = docsFinished
 	docFeeder.TotalNumDocs = totalNumDocs
 	docFeeder.DocSizeBytes = docSizeBytes
+
+	// create a uuid that will make keys for this "run" not collide from future runs
+	// or from other machines running go-couchbase-throughput concurrently with this one.
+	uuidRaw, err := uuid.NewV4()
+	if err != nil {
+		log.Panicf("Error creating a UUID: %v", err)
+	}
+	docFeeder.KeyPrefixUUID = uuidRaw.String()
+
 	return &docFeeder
 }
 
@@ -44,7 +56,7 @@ func (d *DocFeeder) writeDocs(wg *sync.WaitGroup) {
 	for i := 0; i < d.TotalNumDocs; i++ {
 
 		doc := Document{
-			Key:   fmt.Sprintf("key-%v", i),
+			Key:   fmt.Sprintf("key-%v-%v", i, d.KeyPrefixUUID),
 			Value: d.createDocContent(),
 		}
 		d.DocsToWrite <- doc
