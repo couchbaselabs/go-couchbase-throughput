@@ -10,8 +10,8 @@ var SlowServerCallWarningThreshold = time.Duration(2500) * time.Millisecond
 
 var storageEngineWriter StorageEngine
 var storageEngineReader StorageEngine
-var totalNumDocs = flag.Int("totalNumDocs", 1000, "Total number of docs")
-var docSizeBytes = flag.Int("docSizeBytes", 100, "The doc size to use, in bytes")
+var totalNumDocs = flag.Int("totalNumDocs", 500000, "Total number of docs")
+var docSizeBytes = flag.Int("docSizeBytes", 1024, "The doc size to use, in bytes")
 var numDocWriters = flag.Int("numDocWriters", 1000, "The number of writer goroutines")
 var numDocReaders = flag.Int("numDocReaders", 1000, "The number of reader goroutines")
 var storageEngineType = flag.String("storageEngineType", "gocb", "gocb or go-couchbase")
@@ -22,7 +22,6 @@ var bucket = flag.String("couchbaseBucket", "bucket-1", "Couchbase Bucket")
 func main() {
 
 	flag.Parse()
-	log.Printf("Num docs: %v", *totalNumDocs)
 
 	chanBufferSize := *totalNumDocs
 

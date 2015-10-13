@@ -47,12 +47,14 @@ func (dr *DocReader) Start() {
 
 func (dw *DocWriter) writeDocs() {
 	for docToWrite := range dw.DocsToWrite {
-		// log.Printf("Writing doc: %v", docToWrite.Key)
-		dw.StorageEngine.Insert(
+		err := dw.StorageEngine.Insert(
 			docToWrite.Key,
 			docToWrite.Value,
 			0,
 		)
+		if err != nil {
+			log.Printf("Error writing doc: %v", err)
+		}
 		docToRead := Document{
 			Key: docToWrite.Key,
 		}
@@ -63,16 +65,14 @@ func (dw *DocWriter) writeDocs() {
 
 func (dr *DocReader) readDocs() {
 	for docToRead := range dr.DocsToRead {
-		// log.Printf("Reading doc: %v", docToRead.Key)
-		dr.StorageEngine.Get(
+		err := dr.StorageEngine.Get(
 			docToRead.Key,
 			&docToRead.Value,
 		)
 		atomic.AddInt64(&numDocsFinished, 1)
-		// docFinished := Document{
-		// 	Key: docToRead.Key,
-		// }
-		// dr.DocsFinished <- docFinished
+		if err != nil {
+			log.Printf("Error getting doc: %v", err)
+		}
 	}
 
 }

@@ -72,7 +72,6 @@ func NewGoCBStorageEngine(couchbaseUrl, bucketName string) *GoCBStorageEngine {
 	if err != nil {
 		log.Panicf("Could not connect to %v.  Err: %v", couchbaseUrl, err)
 	}
-	log.Printf("cluster: %v", cluster)
 	bucket, err := cluster.OpenBucket(bucketName, "")
 	if err != nil {
 		log.Panicf("Could not open bucket: %v.  Err: %v", bucket, err)
