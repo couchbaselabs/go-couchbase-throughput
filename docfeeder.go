@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"sync"
+	"sync/atomic"
+	"time"
 )
 
 type DocFeeder struct {
@@ -36,6 +39,8 @@ func (d *DocFeeder) Start() *sync.WaitGroup {
 
 func (d *DocFeeder) writeDocs(wg *sync.WaitGroup) {
 
+	wg.Add(d.TotalNumDocs)
+
 	for i := 0; i < d.TotalNumDocs; i++ {
 
 		doc := Document{
@@ -43,7 +48,7 @@ func (d *DocFeeder) writeDocs(wg *sync.WaitGroup) {
 			Value: d.createDocContent(),
 		}
 		d.DocsToWrite <- doc
-		wg.Add(1)
+
 	}
 
 }
@@ -64,11 +69,15 @@ func randSeq(n int) string {
 
 func (d *DocFeeder) waitForDocsFinished(wg *sync.WaitGroup) {
 
-	numDocsFinished := 0
 	for {
-		<-d.DocsFinished
-		numDocsFinished += 1
-		wg.Done()
+		<-time.After(1 * time.Second)
+		numDocsFinishedSnapshot := atomic.LoadInt64(&numDocsFinished)
+		if int(numDocsFinishedSnapshot) >= d.TotalNumDocs {
+			wg.Add(-1 * d.TotalNumDocs)
+			log.Printf("/waitForDocsFinished")
+			return
+		}
+		log.Printf("numDocsFinishedSnapshot < totalNumDocs, %v < %v", numDocsFinishedSnapshot, d.TotalNumDocs)
 	}
 
 }

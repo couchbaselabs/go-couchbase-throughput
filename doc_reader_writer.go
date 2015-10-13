@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"sync/atomic"
 	"time"
 )
 
@@ -16,6 +17,9 @@ type DocReader struct {
 	DocsFinished  chan Document
 	StorageEngine StorageEngine
 }
+
+var numDocsWritten int64
+var numDocsFinished int64
 
 func NewDocWriter(docsToWrite, docsToRead chan Document, storageEngine StorageEngine) *DocWriter {
 	return &DocWriter{
@@ -53,6 +57,7 @@ func (dw *DocWriter) writeDocs() {
 			Key: docToWrite.Key,
 		}
 		dw.DocsToRead <- docToRead
+		atomic.AddInt64(&numDocsWritten, 1)
 	}
 }
 
@@ -63,10 +68,11 @@ func (dr *DocReader) readDocs() {
 			docToRead.Key,
 			&docToRead.Value,
 		)
-		docFinished := Document{
-			Key: docToRead.Key,
-		}
-		dr.DocsFinished <- docFinished
+		atomic.AddInt64(&numDocsFinished, 1)
+		// docFinished := Document{
+		// 	Key: docToRead.Key,
+		// }
+		// dr.DocsFinished <- docFinished
 	}
 
 }
@@ -75,11 +81,12 @@ func blockUntilAllDocsWritten(totalNumDocs int, docsToRead chan Document) {
 	log.Printf("blockUntilAllDocsWritten")
 	for {
 		<-time.After(1 * time.Second)
-		if len(docsToRead) >= totalNumDocs {
+		numDocsWrittenSnapshot := atomic.LoadInt64(&numDocsWritten)
+		if int(numDocsWrittenSnapshot) >= totalNumDocs {
 			log.Printf("/blockUntilAllDocsWritten")
 			return
 		}
-		log.Printf("len(docsToRead) < totalNumDocs, %v < %v", len(docsToRead), totalNumDocs)
+		log.Printf("numDocsWrittenSnapshot < totalNumDocs, %v < %v", numDocsWrittenSnapshot, totalNumDocs)
 	}
 
 }
