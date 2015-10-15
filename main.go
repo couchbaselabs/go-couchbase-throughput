@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -23,6 +24,11 @@ var numGoCBStorageEngines = flag.Int("numGoCBStorageEngines", 1, "# of gocb stor
 func main() {
 
 	flag.Parse()
+
+	// enable profiling via http
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	storageEngineReaders = []StorageEngine{}
 	storageEngineWriters = []StorageEngine{}
