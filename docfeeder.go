@@ -52,12 +52,13 @@ func (d *DocFeeder) Start() *sync.WaitGroup {
 func (d *DocFeeder) writeDocs(wg *sync.WaitGroup) {
 
 	wg.Add(d.TotalNumDocs)
+	docContent := d.createDocContent()
 
 	for i := 0; i < d.TotalNumDocs; i++ {
 
 		doc := Document{
 			Key:   fmt.Sprintf("key-%v-%v", i, d.KeyPrefixUUID),
-			Value: d.createDocContent(),
+			Value: docContent,
 		}
 		d.DocsToWrite <- doc
 
