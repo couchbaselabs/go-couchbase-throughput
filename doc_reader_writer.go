@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"sync/atomic"
 	"time"
 )
@@ -9,19 +10,19 @@ import (
 type DocWriter struct {
 	DocsToWrite   chan Document
 	DocsToRead    chan Document
-	StorageEngine StorageEngine
+	StorageEngine []StorageEngine
 }
 
 type DocReader struct {
 	DocsToRead    chan Document
 	DocsFinished  chan Document
-	StorageEngine StorageEngine
+	StorageEngine []StorageEngine
 }
 
 var numDocsWritten int64
 var numDocsFinished int64
 
-func NewDocWriter(docsToWrite, docsToRead chan Document, storageEngine StorageEngine) *DocWriter {
+func NewDocWriter(docsToWrite, docsToRead chan Document, storageEngine []StorageEngine) *DocWriter {
 	return &DocWriter{
 		DocsToWrite:   docsToWrite,
 		DocsToRead:    docsToRead,
@@ -29,7 +30,7 @@ func NewDocWriter(docsToWrite, docsToRead chan Document, storageEngine StorageEn
 	}
 }
 
-func NewDocReader(docsToRead, docsFinished chan Document, storageEngine StorageEngine) *DocReader {
+func NewDocReader(docsToRead, docsFinished chan Document, storageEngine []StorageEngine) *DocReader {
 	return &DocReader{
 		DocsToRead:    docsToRead,
 		DocsFinished:  docsFinished,
@@ -45,9 +46,22 @@ func (dr *DocReader) Start() {
 	go dr.readDocs()
 }
 
+func (dw *DocWriter) getStorageEngineFromPool() StorageEngine {
+	// pick a random one from the slice of storage engines ..
+	storageEngineIndex := random(0, len(dw.StorageEngine))
+	return dw.StorageEngine[storageEngineIndex]
+}
+
+func (dr *DocReader) getStorageEngineFromPool() StorageEngine {
+	// pick a random one from the slice of storage engines ..
+	storageEngineIndex := random(0, len(dr.StorageEngine))
+	return dr.StorageEngine[storageEngineIndex]
+}
+
 func (dw *DocWriter) writeDocs() {
 	for docToWrite := range dw.DocsToWrite {
-		err := dw.StorageEngine.Insert(
+		storageEngine := dw.getStorageEngineFromPool()
+		err := storageEngine.Insert(
 			docToWrite.Key,
 			docToWrite.Value,
 			0,
@@ -65,7 +79,8 @@ func (dw *DocWriter) writeDocs() {
 
 func (dr *DocReader) readDocs() {
 	for docToRead := range dr.DocsToRead {
-		err := dr.StorageEngine.Get(
+		storageEngine := dr.getStorageEngineFromPool()
+		err := storageEngine.Get(
 			docToRead.Key,
 			&docToRead.Value,
 		)
@@ -91,7 +106,7 @@ func blockUntilAllDocsWritten(totalNumDocs int, docsToRead chan Document) {
 
 }
 
-func createDocWriters(docsToWrite, docsToRead chan Document, storageEngine StorageEngine, numDocWriters int) {
+func createDocWriters(docsToWrite, docsToRead chan Document, storageEngine []StorageEngine, numDocWriters int) {
 
 	for i := 0; i < numDocWriters; i++ {
 		docWriter := NewDocWriter(docsToWrite, docsToRead, storageEngine)
@@ -100,11 +115,15 @@ func createDocWriters(docsToWrite, docsToRead chan Document, storageEngine Stora
 
 }
 
-func createDocReaders(docsToRead, docsFinished chan Document, storageEngine StorageEngine, numDocReaders int) {
+func createDocReaders(docsToRead, docsFinished chan Document, storageEngine []StorageEngine, numDocReaders int) {
 
 	for i := 0; i < numDocReaders; i++ {
 		docReader := NewDocReader(docsToRead, docsFinished, storageEngine)
 		docReader.Start()
 	}
 
+}
+
+func random(min, max int) int {
+	return rand.Intn(max-min) + min
 }
