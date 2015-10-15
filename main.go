@@ -18,7 +18,7 @@ var storageEngineType = flag.String("storageEngineType", "gocb", "gocb or go-cou
 var writeAllDocsFirst = flag.Bool("writeAllDocsFirst", false, "Write all docs first, or write + read concurrently")
 var cburl = flag.String("couchbaseUrl", "http://127.0.0.1:8091", "Couchbase URL")
 var bucket = flag.String("couchbaseBucket", "bucket-1", "Couchbase Bucket")
-var numGoCBStorageEngines = flag.Int("numGoCBStorageEngines", 32, "# of gocb storage engines / couchbase connections")
+var numGoCBStorageEngines = flag.Int("numGoCBStorageEngines", 1, "# of gocb storage engines / couchbase connections")
 
 func main() {
 
