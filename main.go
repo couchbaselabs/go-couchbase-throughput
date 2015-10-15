@@ -4,6 +4,8 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
+	"runtime/pprof"
 	"time"
 )
 
@@ -20,6 +22,7 @@ var writeAllDocsFirst = flag.Bool("writeAllDocsFirst", false, "Write all docs fi
 var cburl = flag.String("couchbaseUrl", "http://127.0.0.1:8091", "Couchbase URL")
 var bucket = flag.String("couchbaseBucket", "bucket-1", "Couchbase Bucket")
 var numGoCBStorageEngines = flag.Int("numGoCBStorageEngines", 1, "# of gocb storage engines / couchbase connections")
+var cpuprofile = flag.String("cpuprofile", "", "Write cpu profile to given file")
 
 func main() {
 
@@ -29,6 +32,16 @@ func main() {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
+
+	// record cpu profile to file
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	storageEngineReaders = []StorageEngine{}
 	storageEngineWriters = []StorageEngine{}
