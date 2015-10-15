@@ -46,7 +46,7 @@ func main() {
 	storageEngineReaders = []StorageEngine{}
 	storageEngineWriters = []StorageEngine{}
 
-	chanBufferSize := *totalNumDocs
+	chanBufferSize := 500000
 
 	// create docsToWrite and docsToRead and docsFinished channels
 	docsToWrite := make(chan Document, chanBufferSize)
