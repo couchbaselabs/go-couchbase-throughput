@@ -24,7 +24,6 @@ var cburl = flag.String("couchbaseUrl", "http://127.0.0.1:8091", "Couchbase URL"
 var bucket = flag.String("couchbaseBucket", "bucket-1", "Couchbase Bucket")
 var numGoCBStorageEngines = flag.Int("numGoCBStorageEngines", 1, "# of gocb storage engines / couchbase connections")
 var cpuprofile = flag.String("cpuprofile", "", "Write cpu profile to given file")
-var delayBeforeWriteNs = flag.Int("delayBeforeWriteNs", 1000000, "The number of nanoseconds to sleep before writing a document")
 var delayAfterIOErrNs = flag.Int("delayAfterIOErrNs", 5000000000, "The number of nanoseconds to delay after getting an error reading or writing a document")
 
 func main() {
@@ -58,13 +57,7 @@ func main() {
 
 	// create doc feeder and start it, pass the docsToWrite channel and other
 	// params like total number of docs and doc size
-	docFeeder := NewDocFeeder(
-		docsToWrite,
-		docsFinished,
-		*totalNumDocs,
-		*docSizeBytes,
-		*delayBeforeWriteNs,
-	)
+	docFeeder := NewDocFeeder(docsToWrite, docsFinished, *totalNumDocs, *docSizeBytes)
 	wg := docFeeder.Start()
 
 	switch *storageEngineType {

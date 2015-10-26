@@ -12,21 +12,19 @@ import (
 )
 
 type DocFeeder struct {
-	DocsToWrite        chan Document
-	DocsFinished       chan Document
-	TotalNumDocs       int
-	DocSizeBytes       int
-	KeyPrefixUUID      string
-	DelayBeforeWriteNs int
+	DocsToWrite   chan Document
+	DocsFinished  chan Document
+	TotalNumDocs  int
+	DocSizeBytes  int
+	KeyPrefixUUID string
 }
 
-func NewDocFeeder(docsToWrite, docsFinished chan Document, totalNumDocs, docSizeBytes, delayBeforeWriteNs int) *DocFeeder {
+func NewDocFeeder(docsToWrite, docsFinished chan Document, totalNumDocs, docSizeBytes int) *DocFeeder {
 	docFeeder := DocFeeder{}
 	docFeeder.DocsToWrite = docsToWrite
 	docFeeder.DocsFinished = docsFinished
 	docFeeder.TotalNumDocs = totalNumDocs
 	docFeeder.DocSizeBytes = docSizeBytes
-	docFeeder.DelayBeforeWriteNs = delayBeforeWriteNs
 
 	// create a uuid that will make keys for this "run" not collide from future runs
 	// or from other machines running go-couchbase-throughput concurrently with this one.
@@ -57,10 +55,6 @@ func (d *DocFeeder) writeDocs(wg *sync.WaitGroup) {
 	docContent := d.createDocContent()
 
 	for i := 0; i < d.TotalNumDocs; i++ {
-
-		// sleep before writing the doc, this is the throttling mechanism
-		// to control throughput
-		<-time.After(time.Duration(d.DelayBeforeWriteNs) * time.Nanosecond)
 
 		doc := Document{
 			Key:   fmt.Sprintf("key-%v-%v", i, d.KeyPrefixUUID),
