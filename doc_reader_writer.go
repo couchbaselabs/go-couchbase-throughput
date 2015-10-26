@@ -55,6 +55,10 @@ func (dw *DocWriter) writeDocs() {
 		)
 		if err != nil {
 			log.Printf("Error writing doc: %v", err)
+			if *delayAfterIOErrNs > 0 {
+				log.Printf("Sleeping %v ns due to write error", *delayAfterIOErrNs)
+				<-time.After(time.Duration(*delayAfterIOErrNs) * time.Nanosecond)
+			}
 		}
 		docToRead := Document{
 			Key: docToWrite.Key,
@@ -73,6 +77,10 @@ func (dr *DocReader) readDocs() {
 		atomic.AddInt64(&numDocsFinished, 1)
 		if err != nil {
 			log.Printf("Error getting doc: %v", err)
+			if *delayAfterIOErrNs > 0 {
+				log.Printf("Sleeping %v ns due to read error", *delayAfterIOErrNs)
+				<-time.After(time.Duration(*delayAfterIOErrNs) * time.Nanosecond)
+			}
 		}
 	}
 
