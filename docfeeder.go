@@ -60,9 +60,8 @@ func (d *DocFeeder) writeDocs(wg *sync.WaitGroup) {
 
 		// sleep before writing the doc, this is the throttling mechanism
 		// to control throughput
-		if d.DelayBeforeWriteNs > 0 {
-			<-time.After(time.Duration(d.DelayBeforeWriteNs) * time.Nanosecond)
-		}
+		<-time.After(time.Duration(d.DelayBeforeWriteNs) * time.Nanosecond)
+
 		doc := Document{
 			Key:   fmt.Sprintf("key-%v-%v", i, d.KeyPrefixUUID),
 			Value: docContent,
