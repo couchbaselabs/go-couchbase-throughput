@@ -39,7 +39,7 @@ func updateLoop() {
 
 	for i := 0; i < numUpdates; i++ {
 
-		value := fmt.Sprintf("value-%v", i)
+		value := fmt.Sprintf(`{"value":"%v"}`, i)
 
 		if i == 0 {
 			// insert doc
