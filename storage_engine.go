@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"runtime"
@@ -13,6 +14,10 @@ import (
 type StorageEngine interface {
 	Insert(key string, value interface{}, expiry uint32) error
 	Get(key string, returnVal interface{}) error
+
+	// GoCB and go-couchbase have different methods of updating, I chose the
+	// go-couchbase version
+	Update(key string, expiry uint32, callback couchbase.UpdateFunc) error
 }
 
 type GoCouchbaseStorageEngine struct {
@@ -106,6 +111,11 @@ func (se *GoCBStorageEngine) Get(key string, returnValue interface{}) error {
 	return err
 }
 
+func (se *GoCBStorageEngine) Update(key string, expiry uint32, callback couchbase.UpdateFunc) error {
+	return fmt.Errorf("Update not implemented for GoCB yet")
+
+}
+
 func (se *GoCouchbaseStorageEngine) Get(key string, returnValue interface{}) error {
 	if SlowServerCallWarningThreshold > 0 {
 		defer slowLog(time.Now(), "call to Get(%q)", key)
@@ -113,12 +123,24 @@ func (se *GoCouchbaseStorageEngine) Get(key string, returnValue interface{}) err
 	return se.Bucket.Get(key, returnValue)
 }
 
+func (se *GoCouchbaseStorageEngine) Update(key string, expiry uint32, callback couchbase.UpdateFunc) error {
+	return se.Bucket.Update(key, int(expiry), callback)
+
+}
+
+// 	Update(key string, expiry uint32, callback couchbase.UpdateFunc) error
+
 func (se *MockStorageEngine) Insert(key string, value interface{}, expiry uint32) error {
 	return nil
 }
 
 func (se *MockStorageEngine) Get(key string, returnValue interface{}) error {
 	return nil
+}
+
+func (se *MockStorageEngine) Update(key string, expiry uint32, callback couchbase.UpdateFunc) error {
+	return nil
+
 }
 
 func slowLog(startTime time.Time, format string, args ...interface{}) {
