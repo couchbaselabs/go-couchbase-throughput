@@ -43,11 +43,13 @@ func updateLoop() {
 
 		if i == 0 {
 			// insert doc
+			log.Printf("Inserting key: %v", key)
 			if err := storageEngine.Insert(key, value, uint32(expiry)); err != nil {
 				log.Panicf("Error inserting doc with key: %v err: %v", key, err)
 			}
 		} else {
 			// update doc to have new value
+			log.Printf("Updating key: %v", key)
 			updateFunc := func(current []byte) (updated []byte, err error) {
 				return []byte(value), nil
 
